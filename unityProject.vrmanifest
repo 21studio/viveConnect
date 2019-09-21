@@ -1,0 +1,16 @@
+{
+  "source": "Unity",
+  "applications": [
+    {
+      "app_key": "application.generated.unity.viveconnect.exe",
+      "launch_type": "url",
+      "url": "steam://launch/",
+      "action_manifest_path": "D:\\Unity\\2018.1.9f2\\Unity Study\\viveConnect\\actions.json",
+      "strings": {
+        "en_us": {
+          "name": "viveConnect [Testing]"
+        }
+      }
+    }
+  ]
+}
