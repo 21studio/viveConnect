@@ -10,6 +10,7 @@ public class LaserPointer : MonoBehaviour
     [SerializeField]
     private SteamVR_Input_Sources hand;
     public SteamVR_Action_Boolean trigger;
+    public SteamVR_Action_Boolean teleport = SteamVR_Actions.default_Teleport;
 
     //라인렌더러의 속성 설정
     private LineRenderer line;
@@ -34,6 +35,9 @@ public class LaserPointer : MonoBehaviour
     public static event PointerClickHandler OnPointerClick;
 
     private GameObject prevButton;
+        
+    public GameObject crossHairPrefab; // 크로스헤어 프리팹
+    private GameObject crossHair; // 크로스헤어
 
     void Start()
     {
@@ -42,6 +46,12 @@ public class LaserPointer : MonoBehaviour
         pose = GetComponent<SteamVR_Behaviour_Pose>()        ;
         hand = pose.inputSource;
         controller = GetComponent<Transform>();
+        
+        if (hand == SteamVR_Input_Sources.RightHand)
+        {
+            crossHairPrefab = Resources.Load<GameObject>("crosshair061");
+            crossHair = Instantiate<GameObject>(crossHairPrefab);
+        }
 
         layerButton = 1 << LayerMask.NameToLayer("BUTTON_UI");
         // | 1 << LayerMask.NameToLayer("OBSTACLE");
@@ -78,6 +88,37 @@ public class LaserPointer : MonoBehaviour
         {
             line.SetPosition(1, new Vector3(0, 0, maxDistance));            
         }
+
+        if (hand == SteamVR_Input_Sources.RightHand)
+        {
+            if (Physics.Raycast(ray, out hit, maxDistance, 1<<10))
+            {
+                // 레이저 길이 조정
+                line.SetPosition(1, new Vector3(0, 0, hit.distance));
+                
+                // 포인터의 위치 변경
+                crossHair.transform.position = hit.point + (Vector3.up * 0.05f);
+                crossHair.transform.rotation = Quaternion.LookRotation(hit.normal);
+                crossHair.SetActive(true);
+
+                if (teleport.GetStateUp(hand))
+                {
+                    SteamVR_Fade.Start(Color.black, 0.0f);
+                    StartCoroutine(Teleport(hit.point));
+                }
+            }
+            else
+            {
+                crossHair.SetActive(false);
+            }
+        }
+    }
+
+    IEnumerator Teleport(Vector3 pos)
+    {
+        transform.parent.position = pos;
+        yield return new WaitForSeconds(0.2f);
+        SteamVR_Fade.Start(Color.clear, 0.3f);
     }
 
     void CreateLine()
